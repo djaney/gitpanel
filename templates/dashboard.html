@@ -1,0 +1,53 @@
+<div layout="column" ng-controller="DashboardController">
+    <md-sidenav md-component-id="projects" class="md-sidenav-left">
+        <md-list>
+            <md-list-item class="md-2-line" ng-click="selectProject(p)" ng-repeat="p in projects">
+                <div class="md-list-item-text">
+                    {{p.name}}
+                </div>
+            </md-list-item>
+        </md-list>
+    </md-sidenav>
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <md-button class="md-icon-button" ng-click="toggleProjects()">
+                <md-icon md-svg-icon="icons/list.svg"></md-icon>
+            </md-button>
+            <h2>{{project.name}}</h2>
+            <span class="flex"></span>
+        </div>
+    </md-toolbar>
+    <md-content layout-padding>
+        <div ng-hide="project">
+            Some dashboard stuff here
+        </div>
+        <div ng-show="project">
+            <div ng-hide="editMode">
+                <md-button class="md-primary md-raised" ng-click="deploy()">
+                    Deploy
+                </md-button>
+                <md-button class="md-raised" ng-click="toggleEditMode()">
+                    Edit
+                </md-button>
+            </div>
+
+
+            <div ng-show="editMode">
+                <md-input-container class="md-block">
+                    <input placeholder="Name" ng-model="project.name" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <textarea placeholder="Description" ng-model="project.description"></textarea>
+                </md-input-container>
+                <md-button ng-show="project" class="md-raised md-primary" ng-click="toggleEditMode()">
+                    Save
+                </md-button>
+            </div>
+            <div ng-hide="editMode">
+                <div layout-padding>
+                    {{project.description}}
+                </div>
+            </div>
+        </div>
+    </md-content>
+</div>

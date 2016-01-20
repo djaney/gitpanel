@@ -1,0 +1,12 @@
+{
+  "name": "gitpanel",
+  "version": "0.1.0",
+  "description": "Deploy git repos to cpanel",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js"
+  },
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.0"
+  }
+}

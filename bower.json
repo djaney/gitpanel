@@ -1,0 +1,23 @@
+{
+  "name": "gitpanel",
+  "description": "Deploy git repos to cpanel",
+  "main": "main.js",
+  "authors": [
+    "Djane Rey Mabelin <thedjaney@gmail.com>"
+  ],
+  "license": "MIT",
+  "moduleType": [],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-material": "~1.0.2",
+    "angular-ui-router": "~0.2.15"
+  }
+}
