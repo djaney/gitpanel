@@ -15,6 +15,9 @@
             </md-button>
             <h2>{{project.name}}</h2>
             <span class="flex"></span>
+            <md-button class="md-raised" ng-click="newProject()">
+                New
+            </md-button>
         </div>
     </md-toolbar>
     <md-content layout-padding>
@@ -35,6 +38,15 @@
             <div ng-show="editMode">
                 <md-input-container class="md-block">
                     <input placeholder="Name" ng-model="project.name" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <input placeholder="Git URL" ng-model="project.git.url" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <input placeholder="Git Username" ng-model="project.git.username">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <input type="password" placeholder="Git Password" ng-model="project.git.password">
                 </md-input-container>
                 <md-input-container class="md-block">
                     <textarea placeholder="Description" ng-model="project.description"></textarea>
