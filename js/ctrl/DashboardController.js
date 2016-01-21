@@ -1,5 +1,5 @@
 angular.module('app')
-.controller('DashboardController', function($scope, $mdSidenav, $mdDialog, $electron) {
+.controller('DashboardController', function($scope, $mdSidenav, $mdDialog, Publisher) {
     $scope.project = null;
     $scope.editMode = false;
     $scope.projects = [];
@@ -33,12 +33,17 @@ angular.module('app')
             .ok('Deploy')
             .cancel('Cancel')
         ;
-        $mdDialog.show(confirm);
+        $mdDialog.show(confirm)
+        .then(function(){
+            Publisher.publish($scope.project)
+            .then(function(){
+                alert('done');
+            });
+        });
     }
 
     $scope.save = function(){
 
     }
-    console.log($electron);
 })
 ;
