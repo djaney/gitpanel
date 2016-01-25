@@ -25,6 +25,7 @@
             Some dashboard stuff here
         </div>
         <div ng-show="project">
+            <md-progress-linear md-mode="indeterminate" value="1" ng-show="isProcessing()"></md-progress-linear>
             <div ng-hide="editMode">
                 <md-button class="md-primary md-raised" ng-click="deploy()">
                     Deploy

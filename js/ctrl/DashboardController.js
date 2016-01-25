@@ -3,6 +3,11 @@ angular.module('app')
     $scope.project = null;
     $scope.editMode = false;
     $scope.projects = [];
+    $scope.deploying = false;
+
+    $scope.isProcessing = function(){
+        return $scope.deploying && $scope.project;
+    }
     $scope.selectProject = function(p){
         $scope.project = p;
         $scope.editMode = false;
@@ -26,7 +31,7 @@ angular.module('app')
     }
 
     $scope.deploy = function(){
-        if(!$scope.project) return;
+        if(!$scope.project && !$scope.isProcessing()) return;
         var confirm = $mdDialog.confirm()
             .title('Confirm')
             .textContent('Are you sure you want to deploy ' + $scope.project.name + "?")
@@ -35,9 +40,13 @@ angular.module('app')
         ;
         $mdDialog.show(confirm)
         .then(function(){
+            $scope.deploying = true;
             Publisher.publish($scope.project)
             .then(function(){
-                alert('done');
+
+                $scope.$apply(function(){
+                    $scope.deploying = false;
+                })
             });
         });
     }
