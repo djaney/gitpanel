@@ -6,6 +6,9 @@ angular.module('app')
     return {
         publishing:true,
         publish:function(project){
+            this.clone(project);
+        },
+        clone: function(project){
             var $this = this;
 
             var directoryName = this.getProjectFolderName(project);
