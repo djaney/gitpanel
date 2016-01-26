@@ -1,8 +1,8 @@
 angular.module('app')
-.controller('DashboardController', function($scope, $mdSidenav, $mdDialog, Publisher) {
+.controller('DashboardController', function($scope, $mdSidenav, $mdDialog, Publisher, Projects) {
     $scope.project = null;
     $scope.editMode = false;
-    $scope.projects = [];
+    $scope.projects = Projects.all();
     $scope.deploying = false;
 
     $scope.isProcessing = function(){
@@ -52,7 +52,8 @@ angular.module('app')
     }
 
     $scope.save = function(){
-
+        $scope.toggleEditMode();
+        Projects.save();
     }
 })
 ;
