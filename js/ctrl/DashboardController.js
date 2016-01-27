@@ -41,13 +41,16 @@ angular.module('app')
         $mdDialog.show(confirm)
         .then(function(){
             $scope.deploying = true;
+
             Publisher.publish($scope.project)
             .then(function(){
-
                 $scope.$apply(function(){
                     $scope.deploying = false;
-                })
+                });
             });
+
+
+
         });
     }
 

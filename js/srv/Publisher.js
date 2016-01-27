@@ -6,14 +6,28 @@ angular.module('app')
     return {
         publishing:true,
         publish:function(project){
-            this.clone(project);
+            return this.clone(project);
         },
         clone: function(project){
             var $this = this;
 
             var directoryName = this.getProjectFolderName(project);
             this.deleteFolder(directoryName);
-            return git.clone(project.git.url,directoryName);
+            var url;
+            if(project.git.url && project.git.username && project.git.password){
+
+                if(/^https:\/\/.+@/.test(project.git.url)){
+                    url = project.git.url.replace(/^https:\/\/(.+)@/,'https://$1:' + project.git.password + '@');
+                }else{
+                    console.log('url',url);
+                    url = project.git.url.replace(/^https:\/\//,'https://' + project.git.username + ':' + project.git.password + '@');
+                }
+
+            }else{
+                url = project.git.url;
+            }
+
+            return git.clone(url,directoryName);
         },
         getProjectFolderName: function(project){
             return './workspace/'+project.name.replace(/[^a-zA-Z0-9]/i,'');
