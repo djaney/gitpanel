@@ -1,16 +1,55 @@
 var fs = require('fs');
-var git = require("simple-git")();
+var Git = require("simple-git");
+// override diff
+// Git.prototype.diffWithCommit = function (hash, options, then) {
+//    var command = ['diff'];
+//
+//    if (typeof options === 'string') {
+//       command[0] += ' ' + options;
+//       this._getLog('warn',
+//          'Git#diff: supplying options as a single string is now deprecated, switch to an array of strings');
+//    }
+//    else if (Array.isArray(options)) {
+//       command.push.apply(command, options);
+//    }
+//
+//    if (typeof arguments[arguments.length - 1] === 'function') {
+//       then = arguments[arguments.length - 1];
+//    }
+//
+//    return this._run(command, function (err, data) {
+//       then && then(err, data);
+//    });
+// };
+
 
 angular.module('app')
 .factory('Publisher',function(){
     return {
         publishing:true,
         publish:function(project){
-            return this.clone(project);
+            var $this = this;
+            return this.clone(project)
+            .then(function(){
+                $this.diff(project,function(err, data){
+                    console.log('files to upload',data);
+                });
+            });
+        },
+        diff: function(project,fn){
+            var directoryName = this.getProjectFolderName(project);
+            var git = Git(directoryName);
+            var params = ['--name-only','69b01f1fe404e742befff89d4b318a83ebf1fce6'];
+            git.diff(params,function(err, data){
+                var arr = data.split("\n");
+                arr.pop();
+                fn && fn(err, arr);
+            });
+
         },
         clone: function(project){
             var $this = this;
-
+            var git = Git();
             var directoryName = this.getProjectFolderName(project);
             this.deleteFolder(directoryName);
             var url;
@@ -26,8 +65,8 @@ angular.module('app')
             }else{
                 url = project.git.url;
             }
-
-            return git.clone(url,directoryName);
+            var git = Git()
+            return git.clone(url, directoryName);
         },
         getProjectFolderName: function(project){
             return './workspace/'+project.name.replace(/[^a-zA-Z0-9]/i,'');
