@@ -41,6 +41,9 @@
                     <input placeholder="Name" ng-model="project.name" required>
                 </md-input-container>
                 <md-input-container class="md-block">
+                    <textarea placeholder="Description" ng-model="project.description"></textarea>
+                </md-input-container>
+                <md-input-container class="md-block">
                     <input placeholder="Git URL" ng-model="project.git.url" required>
                 </md-input-container>
                 <md-input-container class="md-block">
@@ -50,7 +53,16 @@
                     <input type="password" placeholder="Git Password" ng-model="project.git.password">
                 </md-input-container>
                 <md-input-container class="md-block">
-                    <textarea placeholder="Description" ng-model="project.description"></textarea>
+                    <input placeholder="FTP Host" ng-model="project.ftp.host" required>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <input placeholder="FTP Username" ng-model="project.ftp.username">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <input type="password" placeholder="FTP Password" ng-model="project.ftp.password">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <input placeholder="FTP Directory" ng-model="project.ftp.directory">
                 </md-input-container>
                 <md-button ng-show="project" class="md-raised md-primary" ng-click="save()">
                     Save
