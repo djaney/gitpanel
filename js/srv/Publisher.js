@@ -1,26 +1,6 @@
 var fs = require('fs');
 var Git = require("simple-git");
-// override diff
-// Git.prototype.diffWithCommit = function (hash, options, then) {
-//    var command = ['diff'];
-//
-//    if (typeof options === 'string') {
-//       command[0] += ' ' + options;
-//       this._getLog('warn',
-//          'Git#diff: supplying options as a single string is now deprecated, switch to an array of strings');
-//    }
-//    else if (Array.isArray(options)) {
-//       command.push.apply(command, options);
-//    }
-//
-//    if (typeof arguments[arguments.length - 1] === 'function') {
-//       then = arguments[arguments.length - 1];
-//    }
-//
-//    return this._run(command, function (err, data) {
-//       then && then(err, data);
-//    });
-// };
+var walk    = require('walk');
 
 
 angular.module('app')
@@ -29,6 +9,7 @@ angular.module('app')
         publishing:true,
         publish:function(project){
             var $this = this;
+            this.clean(project);
             return this.clone(project)
             .then(function(){
                 $this.diff(project,function(err, data){
@@ -39,19 +20,54 @@ angular.module('app')
         diff: function(project,fn){
             var directoryName = this.getProjectFolderName(project);
             var git = Git(directoryName);
-            var params = ['--name-only','69b01f1fe404e742befff89d4b318a83ebf1fce6'];
-            git.diff(params,function(err, data){
-                var arr = data.split("\n");
-                arr.pop();
-                fn && fn(err, arr);
-            });
+            var params = ['--name-only'];
+            var lastHash = null;
 
+            if(lastHash){
+                params.push(lastHash);
+                git.diff(params,function(err, data){
+                    var arr = data.split("\n");
+                    arr.pop();
+                    for(var i in arr){
+                        if( /(\.git|\.gitignore)/.test(arr[i]) ){
+                            arr.splice(i,1);
+                        }
+                    }
+                    fn && fn(err, arr);
+                });
+            }else{
+                var files   = [];
+                var walker  = walk.walk(directoryName, { followLinks: false });
+                walker.on('file', function(root, stat, next) {
+                    // Add this file to the list of files
+                    if(/(\.git)/.test(root)){
+                        next();
+                    }else if(/(\.gitignore)/.test(stat.name)){
+                        next();
+                    }else{
+                        var fullname = root + '/' + stat.name;
+                        fullname = fullname.slice(directoryName.length+1);
+                        files.push(fullname);
+                        next();
+                    }
+
+
+                });
+                walker.on('end', function() {
+                    fn && fn(null, files);
+                });
+            }
+
+
+        },
+        clean:function(project){
+            var directoryName = this.getProjectFolderName(project);
+            this.deleteFolder(directoryName);
         },
         clone: function(project){
             var $this = this;
             var git = Git();
             var directoryName = this.getProjectFolderName(project);
-            this.deleteFolder(directoryName);
             var url;
             if(project.git.url && project.git.username && project.git.password){
 

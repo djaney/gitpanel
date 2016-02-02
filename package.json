@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "ftp": "^0.3.10",
-    "simple-git": "^1.21.0"
+    "simple-git": "^1.21.0",
+    "walk": "^2.3.9"
   }
 }
