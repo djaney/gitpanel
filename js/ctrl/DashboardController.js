@@ -4,6 +4,8 @@ angular.module('app')
     $scope.editMode = false;
     $scope.projects = Projects.all();
     $scope.deploying = false;
+    $scope.deployProgress = 0;
+    $scope.deployStatus = '';
 
     $scope.isProcessing = function(){
         return $scope.deploying && $scope.project;
@@ -42,11 +44,18 @@ angular.module('app')
         .then(function(){
             $scope.deploying = true;
 
-            Publisher.publish($scope.project)
-            .then(function(){
+            Publisher.publish($scope.project,function(){
                 $scope.$apply(function(){
                     $scope.deploying = false;
                 });
+            },function(percent, status){
+                $scope.deployProgress = percent;
+                if(1==percent){
+                    $scope.deployStatus = '';
+                }else{
+                    $scope.deployStatus = status;
+                }
+                if(!$scope.$$phase) $scope.$apply();
             });
 
 

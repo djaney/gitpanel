@@ -1,21 +1,76 @@
 var fs = require('fs');
 var Git = require("simple-git");
 var walk    = require('walk');
-
+var Ftp = require('ftp');
 
 angular.module('app')
 .factory('Publisher',function(){
     return {
         publishing:true,
-        publish:function(project){
+        publish:function(project, done, progress){
             var $this = this;
             this.clean(project);
+            progress(0, 'Cloning');
             return this.clone(project)
             .then(function(){
                 $this.diff(project,function(err, data){
-                    console.log('files to upload',data);
+                    $this.upload(project, data, function(err){
+                        done && done(err);
+                    },function(percent, status){
+                        progress && progress(percent, status);
+                    });
                 });
             });
+        },
+        upload:function(project, files, fn, progress){
+            var ftp = new Ftp();
+            var directoryName = this.getProjectFolderName(project);
+            var directoriesCreated = [];
+            var uploadedCount = 0;
+            ftp.on('ready', function() {
+                for(var i in files){
+                    var fullname = directoryName + '/' + files[i];
+                    var remoteName = fullname.slice(directoryName.length+1);
+                    if(project.ftp.directory){
+                        remoteName = project.ftp.directory + '/' + remoteName;
+                    }
+
+                    var tmp = remoteName.split('/');
+                    tmp.pop();
+                    var newDir = tmp.join('/',tmp);
+
+                    if(directoriesCreated.indexOf(newDir)<0){
+                        directoriesCreated.push(newDir);
+                        ftp.mkdir(newDir, true, function(){});
+                    }
+
+                    ftp.put(fullname, remoteName, function(err) {
+                        progress(uploadedCount++/files.length, 'Uploading');
+                        if (err) throw err;
+                        ftp.end();
+                    });
+
+
+                }
+
+            });
+            ftp.on('end',function(){
+                progress && progress(1, 'Done');
+                fn && fn();
+            });
+            ftp.on('error',function(err){
+                fn && fn(err);
+            });
+            var config = {
+                host: project.ftp.host
+            };
+            if(project.ftp.username){
+                config.user = project.ftp.username;
+            }
+            if(project.ftp.password){
+                config.password = project.ftp.password;
+            }
+            ftp.connect(config);
         },
         diff: function(project,fn){
             var directoryName = this.getProjectFolderName(project);
