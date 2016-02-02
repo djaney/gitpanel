@@ -49,7 +49,7 @@ angular.module('app')
                     $scope.deploying = false;
                 });
             },function(percent, status){
-                $scope.deployProgress = percent;
+                $scope.deployProgress = percent * 100;
                 if(1==percent){
                     $scope.deployStatus = '';
                 }else{
