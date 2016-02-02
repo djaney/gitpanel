@@ -93,6 +93,36 @@ angular.module('app')
             var params = ['--name-only'];
             var lastHash = null;
 
+
+            // READ THE HASH HERE
+            // var ftp = new Ftp();
+            //
+            // ftp.on('ready',function(err){
+            //     ftp.get(project.ftp.directory + '/.gitpanel', function(err, stream) {
+            //         if(err){
+            //             throw err;
+            //         }else{
+            //             var hash = stream.read();
+            //             console.log(hash);
+            //         }
+            //
+            //         ftp.end();
+            //     });
+            // });
+            //
+            // var config = {
+            //     host: project.ftp.host
+            // };
+            // if(project.ftp.username){
+            //     config.user = project.ftp.username;
+            // }
+            // if(project.ftp.password){
+            //     config.password = project.ftp.password;
+            // }
+            // ftp.connect(config);
+
+
+
             if(lastHash){
                 params.push(lastHash);
                 git.diff(params,function(err, data){
