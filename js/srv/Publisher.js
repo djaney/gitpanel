@@ -27,33 +27,9 @@ angular.module('app')
             var directoryName = this.getProjectFolderName(project);
             var directoriesCreated = [];
             var uploadedCount = 0;
-            ftp.on('ready', function() {
-                for(var i in files){
-                    var fullname = directoryName + '/' + files[i];
-                    var remoteName = fullname.slice(directoryName.length+1);
-                    if(project.ftp.directory){
-                        remoteName = project.ftp.directory + '/' + remoteName;
-                    }
+            var git = Git(directoryName);
+            var hashBuffer = null;
 
-                    var tmp = remoteName.split('/');
-                    tmp.pop();
-                    var newDir = tmp.join('/',tmp);
-
-                    if(directoriesCreated.indexOf(newDir)<0){
-                        directoriesCreated.push(newDir);
-                        ftp.mkdir(newDir, true, function(){});
-                    }
-
-                    ftp.put(fullname, remoteName, function(err) {
-                        progress(uploadedCount++/files.length, 'Uploading');
-                        if (err) throw err;
-                        ftp.end();
-                    });
-
-
-                }
-
-            });
             ftp.on('end',function(){
                 progress && progress(1, 'Done');
                 fn && fn();
@@ -61,16 +37,55 @@ angular.module('app')
             ftp.on('error',function(err){
                 fn && fn(err);
             });
-            var config = {
-                host: project.ftp.host
-            };
-            if(project.ftp.username){
-                config.user = project.ftp.username;
-            }
-            if(project.ftp.password){
-                config.password = project.ftp.password;
-            }
-            ftp.connect(config);
+
+            git.log({'max-count': 1},function(err, data){
+                var hash = data.latest.hash.slice(1);
+                hashBuffer = new Buffer(hash);
+                ftp.on('ready', function() {
+                    ftp.put(hashBuffer, project.ftp.directory + '/.gitpanel', function(err) {
+                        if (err) throw err;
+                    });
+                    for(var i in files){
+                        var fullname = directoryName + '/' + files[i];
+                        var remoteName = fullname.slice(directoryName.length+1);
+                        if(project.ftp.directory){
+                            remoteName = project.ftp.directory + '/' + remoteName;
+                        }
+
+                        var tmp = remoteName.split('/');
+                        tmp.pop();
+                        var newDir = tmp.join('/',tmp);
+
+                        if(directoriesCreated.indexOf(newDir)<0){
+                            directoriesCreated.push(newDir);
+                            ftp.mkdir(newDir, true, function(){});
+                        }
+
+                        ftp.put(fullname, remoteName, function(err) {
+                            progress(uploadedCount++/files.length, 'Uploading');
+                            if (err) throw err;
+                            ftp.end();
+                        });
+
+
+                    }
+
+                });
+                var config = {
+                    host: project.ftp.host
+                };
+                if(project.ftp.username){
+                    config.user = project.ftp.username;
+                }
+                if(project.ftp.password){
+                    config.password = project.ftp.password;
+                }
+                ftp.connect(config);
+            });
+
+
+
+
         },
         diff: function(project,fn){
             var directoryName = this.getProjectFolderName(project);
