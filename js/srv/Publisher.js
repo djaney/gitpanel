@@ -190,8 +190,11 @@ angular.module('app')
             var git = Git()
             return git.clone(url, directoryName);
         },
+        getUserHome: function(){
+            return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+        },
         getProjectFolderName: function(project){
-            return './workspace/'+project.name.replace(/[^a-zA-Z0-9]/i,'');
+            return this.getUserHome()+'/.gitpanel/workspace/'+project.name.replace(/[^a-zA-Z0-9]/i,'');
         },
         deleteFolder: function(path) {
             $this = this;
