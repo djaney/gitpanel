@@ -14,11 +14,16 @@ angular.module('app')
             return this.clone(project)
             .then(function(){
                 $this.diff(project,function(err, data){
-                    $this.upload(project, data, function(err){
+                    if(err){
                         done && done(err);
-                    },function(percent, status){
-                        progress && progress(percent, status);
-                    });
+                    }else{
+                        $this.upload(project, data, function(err){
+                            done && done(err);
+                        },function(percent, status){
+                            progress && progress(percent, status);
+                        });
+                    }
+
                 });
             });
         },
@@ -29,7 +34,7 @@ angular.module('app')
             var uploadedCount = 0;
             var git = Git(directoryName);
             var hashBuffer = null;
-
+            var $this = this;
             ftp.on('end',function(){
                 progress && progress(1, 'Done');
                 fn && fn();
@@ -71,92 +76,94 @@ angular.module('app')
                         if (err) throw err;
                     });
                 });
-                var config = {
-                    host: project.ftp.host
-                };
-                if(project.ftp.username){
-                    config.user = project.ftp.username;
-                }
-                if(project.ftp.password){
-                    config.password = project.ftp.password;
-                }
-                ftp.connect(config);
+                ftp.connect($this.getFtpConfig(project));
             });
 
 
 
 
         },
+        getFtpConfig: function(project){
+            var config = {
+                host: project.ftp.host
+            };
+            if(project.ftp.username){
+                config.user = project.ftp.username;
+            }
+            if(project.ftp.password){
+                config.password = project.ftp.password;
+            }
+            return config;
+        },
         diff: function(project,fn){
             var directoryName = this.getProjectFolderName(project);
             var git = Git(directoryName);
             var params = ['--name-only'];
-            var lastHash = project.lastHash || null;
+            var lastHash = null;
 
 
-            // READ THE HASH HERE
-            // var ftp = new Ftp();
-            //
-            // ftp.on('ready',function(err){
-            //     ftp.get(project.ftp.directory + '/.gitpanel', function(err, stream) {
-            //         if(err){
-            //             throw err;
-            //         }else{
-            //             var hash = stream.read();
-            //             console.log(hash);
-            //         }
-            //
-            //         ftp.end();
-            //     });
-            // });
-            //
-            // var config = {
-            //     host: project.ftp.host
-            // };
-            // if(project.ftp.username){
-            //     config.user = project.ftp.username;
-            // }
-            // if(project.ftp.password){
-            //     config.password = project.ftp.password;
-            // }
-            // ftp.connect(config);
+            var ftp = new Ftp();
 
-
-
-            if(lastHash){
-                params.push(lastHash);
-                git.diff(params,function(err, data){
-                    var arr = data.split("\n");
-                    arr.pop();
-                    for(var i in arr){
-                        if( /(\.git|\.gitignore)/.test(arr[i]) ){
-                            arr.splice(i,1);
-                        }
-                    }
-                    fn && fn(err, arr);
-                });
-            }else{
-                var files   = [];
-                var walker  = walk.walk(directoryName, { followLinks: false });
-                walker.on('file', function(root, stat, next) {
-                    // Add this file to the list of files
-                    if(/(\.git)/.test(root)){
-                        next();
-                    }else if(/(\.gitignore)/.test(stat.name)){
-                        next();
+            ftp.on('ready',function(err){
+                ftp.get(project.ftp.directory + '/.gitpanel', function(err, stream) {
+                    if(err){
+                        throw err;
                     }else{
-                        var fullname = root + '/' + stat.name;
-                        fullname = fullname.slice(directoryName.length+1);
-                        files.push(fullname);
-                        next();
+                        var hash = stream.read() || null;
+                        console.log('Last update hash found',hash);
+                        lastHash = hash;
                     }
 
+                    ftp.end();
+                });
+            });
+            ftp.on('error',function(err){
+                fn && fn(err);
+            });
 
-                });
-                walker.on('end', function() {
-                    fn && fn(null, files);
-                });
-            }
+            ftp.on('end',function(){
+                if(lastHash){
+                    params.push(lastHash);
+                    git.diff(params,function(err, data){
+                        var arr = data.split("\n");
+                        arr.pop();
+                        for(var i in arr){
+                            if( /(\.git|\.gitignore)/.test(arr[i]) ){
+                                arr.splice(i,1);
+                            }
+                        }
+                        fn && fn(err, arr);
+                    });
+                }else{
+                    var files   = [];
+                    var walker  = walk.walk(directoryName, { followLinks: false });
+                    walker.on('file', function(root, stat, next) {
+                        // Add this file to the list of files
+                        if(/(\.git)/.test(root)){
+                            next();
+                        }else if(/(\.gitignore)/.test(stat.name)){
+                            next();
+                        }else{
+                            var fullname = root + '/' + stat.name;
+                            fullname = fullname.slice(directoryName.length+1);
+                            files.push(fullname);
+                            next();
+                        }
+
+
+                    });
+                    walker.on('end', function() {
+                        fn && fn(null, files);
+                    });
+                }
+            });
+
+            ftp.connect(this.getFtpConfig(project));
+
+
+
+
+
 
 
         },
@@ -174,7 +181,6 @@ angular.module('app')
                 if(/^https:\/\/.+@/.test(project.git.url)){
                     url = project.git.url.replace(/^https:\/\/(.+)@/,'https://$1:' + project.git.password + '@');
                 }else{
-                    console.log('url',url);
                     url = project.git.url.replace(/^https:\/\//,'https://' + project.git.username + ':' + project.git.password + '@');
                 }
 

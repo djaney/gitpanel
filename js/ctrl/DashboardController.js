@@ -1,5 +1,5 @@
 angular.module('app')
-.controller('DashboardController', function($scope, $mdSidenav, $mdDialog, Publisher, Projects) {
+.controller('DashboardController', function($scope, $mdSidenav, $mdDialog, Publisher, Projects, $mdToast) {
     $scope.project = null;
     $scope.editMode = false;
     $scope.projects = Projects.all();
@@ -44,7 +44,17 @@ angular.module('app')
         .then(function(){
             $scope.deploying = true;
 
-            Publisher.publish($scope.project,function(){
+            Publisher.publish($scope.project,function(err){
+                if(err){
+                    var errorDialog = $mdDialog.alert()
+                        .title('Error')
+                        .textContent(err.message)
+                        .ok('Ok');
+                    $mdDialog.show(errorDialog)
+
+                }else{
+                    $mdToast.showSimple('Project deployed');
+                }
                 $scope.$apply(function(){
                     $scope.deploying = false;
                 });
