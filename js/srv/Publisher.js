@@ -42,9 +42,7 @@ angular.module('app')
                 var hash = data.latest.hash.slice(1);
                 hashBuffer = new Buffer(hash);
                 ftp.on('ready', function() {
-                    ftp.put(hashBuffer, project.ftp.directory + '/.gitpanel', function(err) {
-                        if (err) throw err;
-                    });
+
                     for(var i in files){
                         var fullname = directoryName + '/' + files[i];
                         var remoteName = fullname.slice(directoryName.length+1);
@@ -69,7 +67,9 @@ angular.module('app')
 
 
                     }
-
+                    ftp.put(hashBuffer, project.ftp.directory + '/.gitpanel', function(err) {
+                        if (err) throw err;
+                    });
                 });
                 var config = {
                     host: project.ftp.host
@@ -91,7 +91,7 @@ angular.module('app')
             var directoryName = this.getProjectFolderName(project);
             var git = Git(directoryName);
             var params = ['--name-only'];
-            var lastHash = null;
+            var lastHash = project.lastHash || null;
 
 
             // READ THE HASH HERE
